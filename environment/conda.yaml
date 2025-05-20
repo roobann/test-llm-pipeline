@@ -1,0 +1,11 @@
+name: llama-env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+    - torch
+    - transformers
+    - huggingface_hub 
