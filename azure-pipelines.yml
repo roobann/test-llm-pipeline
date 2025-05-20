@@ -67,6 +67,12 @@ steps:
     "
   displayName: 'Download model from Hugging Face'
 
+- script: |
+    # Install Azure CLI
+    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+    az --version
+  displayName: 'Install Azure CLI'
+
 - task: AzureCLI@2
   inputs:
     azureSubscription: 'azure-subscription'
