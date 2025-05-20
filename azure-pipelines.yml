@@ -96,18 +96,28 @@ steps:
         --resource-group $(AZURE_ML_RESOURCE_GROUP)
 
 - task: AzureCLI@2
-  displayName: 'Create Online Endpoint'
+  displayName: 'Create or Update Online Endpoint'
   inputs:
     azureSubscription: 'azure-subscription'
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
-      # Create the endpoint with variable name
-      az ml online-endpoint create \
-        --name $(ENDPOINT_NAME) \
-        --auth-mode key \
-        --workspace-name $(AZURE_ML_WORKSPACE) \
-        --resource-group $(AZURE_ML_RESOURCE_GROUP)
+      # Check if endpoint exists and create or update accordingly
+      if az ml online-endpoint show --name $(ENDPOINT_NAME) --workspace-name $(AZURE_ML_WORKSPACE) --resource-group $(AZURE_ML_RESOURCE_GROUP) &>/dev/null; then
+        echo "Endpoint exists, updating..."
+        az ml online-endpoint update \
+          --name $(ENDPOINT_NAME) \
+          --auth-mode key \
+          --workspace-name $(AZURE_ML_WORKSPACE) \
+          --resource-group $(AZURE_ML_RESOURCE_GROUP)
+      else
+        echo "Creating new endpoint..."
+        az ml online-endpoint create \
+          --name $(ENDPOINT_NAME) \
+          --auth-mode key \
+          --workspace-name $(AZURE_ML_WORKSPACE) \
+          --resource-group $(AZURE_ML_RESOURCE_GROUP)
+      fi
 
 - task: AzureCLI@2
   displayName: 'Deploy Model to Online Endpoint'
