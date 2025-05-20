@@ -124,13 +124,16 @@ steps:
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
-      # Create deployment configuration with proper variable substitution
-      sed -e "s/\$(ENDPOINT_NAME)/$(ENDPOINT_NAME)/g" \
-          -e "s/\$(MODEL_NAME)/$(MODEL_NAME)/g" \
-          deployment_config.yml > deployment_config_processed.yml
-      
-      # Deploy the model using the processed configuration file
-      az ml online-deployment create -f deployment_config_processed.yml \
+      # Deploy the model directly using CLI commands
+      az ml online-deployment create \
+        --name llama-3-2-1b-deployment \
+        --endpoint-name llama-endpoint-v1 \
+        --model azureml:$(MODEL_NAME)@latest \
+        --environment azureml:AzureML-sklearn-1.0-ubuntu20.04-py38-cpu@latest \
+        --code . \
+        --scoring-script score.py \
+        --instance-type Standard_NC6s_v3 \
+        --instance-count 1 \
         --workspace-name $(AZURE_ML_WORKSPACE) \
         --resource-group $(AZURE_ML_RESOURCE_GROUP)
 
