@@ -2,6 +2,7 @@ trigger:
   - main
 
 pool:
+  vmImage: 'ubuntu-latest'
   name: 'Default'
 
 variables:
@@ -17,19 +18,25 @@ variables:
     value: '$(Build.SourcesDirectory)/models'
 
 steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '3.13.3'
-    addToPath: true
+- script: |
+    sudo apt-get update
+    sudo apt-get install -y software-properties-common
+    sudo add-apt-repository -y ppa:deadsnakes/ppa
+    sudo apt-get update
+    sudo apt-get install -y python3.11 python3.11-dev python3.11-venv
+    sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+    sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.11 1
+    python3 --version
+  displayName: 'Install Python 3.11'
 
 - script: |
-    python -m pip install --upgrade pip
-    pip install torch transformers huggingface_hub azure-ai-ml
+    python3 -m pip install --upgrade pip
+    python3 -m pip install torch transformers huggingface_hub azure-ai-ml
   displayName: 'Install dependencies'
 
 - script: |
     mkdir -p $(MODEL_PATH)
-    python -c "
+    python3 -c "
     from huggingface_hub import snapshot_download
     from transformers import AutoTokenizer, AutoModelForCausalLM
     
