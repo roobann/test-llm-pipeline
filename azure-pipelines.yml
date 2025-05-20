@@ -116,8 +116,13 @@ steps:
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
-      # Deploy the model using the configuration file
-      az ml online-deployment create -f deployment_config.yml \
+      # Create deployment configuration with proper variable substitution
+      sed -e "s/\$(ENDPOINT_NAME)/$(ENDPOINT_NAME)/g" \
+          -e "s|\$(MODEL_PATH)|$(MODEL_PATH)|g" \
+          deployment_config.yml > deployment_config_processed.yml
+      
+      # Deploy the model using the processed configuration file
+      az ml online-deployment create -f deployment_config_processed.yml \
         --workspace-name $(AZURE_ML_WORKSPACE) \
         --resource-group $(AZURE_ML_RESOURCE_GROUP)
 

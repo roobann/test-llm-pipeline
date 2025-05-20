@@ -3,6 +3,7 @@ name: llama-3-2-1b-deployment
 endpoint_name: $(ENDPOINT_NAME)
 model:
   path: $(MODEL_PATH)
+  type: custom_model
 code_configuration:
   code: .
   scoring_script: score.py
@@ -10,4 +11,5 @@ environment:
   conda_file: environment/conda.yaml
   image: mcr.microsoft.com/azureml/cuda-11.8-cudnn8-ubuntu22.04:latest
 instance_type: Standard_NC6s_v3
-instance_count: 1 
+instance_count: 1
+app_insights_enabled: true 
