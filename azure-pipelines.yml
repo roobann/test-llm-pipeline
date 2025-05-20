@@ -13,7 +13,7 @@ variables:
   - name: MODEL_NAME
     value: 'llama-3-2-1b'
   - name: ENDPOINT_NAME
-    value: 'llama-endpoint'
+    value: 'llama-endpoint-v1'
   - name: MODEL_PATH
     value: '$(Build.SourcesDirectory)/models'
   - name: VENV_PATH
@@ -102,8 +102,10 @@ steps:
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
-      # Create the endpoint
-      az ml online-endpoint create -f endpoint.yml \
+      # Create the endpoint with variable name
+      az ml online-endpoint create \
+        --name $(ENDPOINT_NAME) \
+        --auth-mode key \
         --workspace-name $(AZURE_ML_WORKSPACE) \
         --resource-group $(AZURE_ML_RESOURCE_GROUP)
 
