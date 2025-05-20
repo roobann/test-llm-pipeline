@@ -90,7 +90,9 @@ steps:
       az ml model create \
         --name $(MODEL_NAME) \
         --path $(MODEL_PATH) \
-        --type custom_model
+        --type custom_model \
+        --workspace-name $(AZURE_ML_WORKSPACE) \
+        --resource-group $(AZURE_ML_RESOURCE_GROUP)
 
 - task: AzureCLI@2
   inputs:
@@ -114,7 +116,9 @@ steps:
       EOF
 
       # Deploy the model
-      az ml online-endpoint create -f deployment_config.yml
+      az ml online-endpoint create -f deployment_config.yml \
+        --workspace-name $(AZURE_ML_WORKSPACE) \
+        --resource-group $(AZURE_ML_RESOURCE_GROUP)
 
 - task: AzureCLI@2
   inputs:
@@ -123,9 +127,9 @@ steps:
     scriptLocation: 'inlineScript'
     inlineScript: |
       # Get the scoring URI
-      SCORING_URI=$(az ml online-endpoint show -n $(ENDPOINT_NAME) --query "scoring_uri" -o tsv)
+      SCORING_URI=$(az ml online-endpoint show -n $(ENDPOINT_NAME) --workspace-name $(AZURE_ML_WORKSPACE) --resource-group $(AZURE_ML_RESOURCE_GROUP) --query "scoring_uri" -o tsv)
       echo "##vso[task.setvariable variable=SCORING_URI]$SCORING_URI"
       
       # Get the primary key
-      PRIMARY_KEY=$(az ml online-endpoint get-credentials -n $(ENDPOINT_NAME) --query "primaryKey" -o tsv)
+      PRIMARY_KEY=$(az ml online-endpoint get-credentials -n $(ENDPOINT_NAME) --workspace-name $(AZURE_ML_WORKSPACE) --resource-group $(AZURE_ML_RESOURCE_GROUP) --query "primaryKey" -o tsv)
       echo "##vso[task.setvariable variable=PRIMARY_KEY]$PRIMARY_KEY" 
