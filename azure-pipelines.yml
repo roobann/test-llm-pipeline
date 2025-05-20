@@ -126,7 +126,7 @@ steps:
     inlineScript: |
       # Create deployment configuration with proper variable substitution
       sed -e "s/\$(ENDPOINT_NAME)/$(ENDPOINT_NAME)/g" \
-          -e "s|\$(MODEL_PATH)|$(MODEL_PATH)|g" \
+          -e "s/\$(MODEL_NAME)/$(MODEL_NAME)/g" \
           deployment_config.yml > deployment_config_processed.yml
       
       # Deploy the model using the processed configuration file
