@@ -74,6 +74,7 @@ steps:
   displayName: 'Install Azure CLI'
 
 - task: AzureCLI@2
+  displayName: 'Setup Azure ML Workspace and Register Model'
   inputs:
     azureSubscription: 'azure-subscription'
     scriptType: 'bash'
@@ -95,6 +96,7 @@ steps:
         --resource-group $(AZURE_ML_RESOURCE_GROUP)
 
 - task: AzureCLI@2
+  displayName: 'Deploy Model to Online Endpoint'
   inputs:
     azureSubscription: 'azure-subscription'
     scriptType: 'bash'
@@ -103,15 +105,16 @@ steps:
       # Create model deployment configuration
       cat > deployment_config.yml << EOF
       name: llama-3-2-1b-deployment
-      endpoint_name: $(ENDPOINT_NAME)
+      type: online
+      target: azureml:$(ENDPOINT_NAME)@latest
       model: azureml:$(MODEL_NAME)@latest
       environment: azureml:AzureML-sklearn-1.0-ubuntu20.04-py38-cpu@latest
       code_configuration:
         code: .
         scoring_script: score.py
-      resources:
-        instance_type: Standard_NC6s_v3
-        instance_count: 1
+      instance_type: Standard_NC6s_v3
+      instance_count: 1
+      app_insights_enabled: true
       request_settings:
         max_concurrent_requests_per_instance: 1
         request_timeout_ms: 90000
@@ -154,6 +157,7 @@ steps:
         --resource-group $(AZURE_ML_RESOURCE_GROUP)
 
 - task: AzureCLI@2
+  displayName: 'Get Endpoint Details'
   inputs:
     azureSubscription: 'azure-subscription'
     scriptType: 'bash'
