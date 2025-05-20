@@ -1,0 +1,67 @@
+trigger:
+  - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - name: AZURE_ML_WORKSPACE
+    value: 'azure-ml-test'
+  - name: AZURE_ML_RESOURCE_GROUP
+    value: 'east-us-rg'
+  - name: MODEL_NAME
+    value: 'llama-3.2-1b'
+  - name: ENDPOINT_NAME
+    value: 'llama-endpoint'
+
+steps:
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'azure-subscription'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      # Install Azure ML CLI extension
+      az extension add -n ml -y
+      
+      # Set up Azure ML workspace
+      az ml workspace show -n $(AZURE_ML_WORKSPACE) -g $(AZURE_ML_RESOURCE_GROUP) || \
+      az ml workspace create -n $(AZURE_ML_WORKSPACE) -g $(AZURE_ML_RESOURCE_GROUP)
+
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'azure-subscription'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      # Create model deployment configuration
+      cat > deployment_config.yml << EOF
+      name: $(MODEL_NAME)-deployment
+      model: azureml:$(MODEL_NAME)@latest
+      endpoint_name: $(ENDPOINT_NAME)
+      instance_type: Standard_NC6s_v3
+      instance_count: 1
+      app_insights_enabled: true
+      request_settings:
+        max_concurrent_requests_per_instance: 1
+        request_timeout_ms: 90000
+      traffic:
+        blue: 100
+      EOF
+
+      # Deploy the model
+      az ml online-endpoint create -f deployment_config.yml
+
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: 'azure-subscription'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      # Get the scoring URI
+      SCORING_URI=$(az ml online-endpoint show -n $(ENDPOINT_NAME) --query "scoring_uri" -o tsv)
+      echo "##vso[task.setvariable variable=SCORING_URI]$SCORING_URI"
+      
+      # Get the primary key
+      PRIMARY_KEY=$(az ml online-endpoint get-credentials -n $(ENDPOINT_NAME) --query "primaryKey" -o tsv)
+      echo "##vso[task.setvariable variable=PRIMARY_KEY]$PRIMARY_KEY" 
