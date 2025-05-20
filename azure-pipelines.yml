@@ -107,14 +107,12 @@ steps:
         echo "Endpoint exists, updating..."
         az ml online-endpoint update \
           --name $(ENDPOINT_NAME) \
-          --auth-mode key \
           --workspace-name $(AZURE_ML_WORKSPACE) \
           --resource-group $(AZURE_ML_RESOURCE_GROUP)
       else
         echo "Creating new endpoint..."
         az ml online-endpoint create \
           --name $(ENDPOINT_NAME) \
-          --auth-mode key \
           --workspace-name $(AZURE_ML_WORKSPACE) \
           --resource-group $(AZURE_ML_RESOURCE_GROUP)
       fi
