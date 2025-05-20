@@ -11,7 +11,7 @@ variables:
   - name: AZURE_ML_RESOURCE_GROUP
     value: 'east-us-rg-test'
   - name: MODEL_NAME
-    value: 'llama-3.2-1b'
+    value: 'llama-3-2-1b'
   - name: ENDPOINT_NAME
     value: 'llama-endpoint'
   - name: MODEL_PATH
@@ -102,7 +102,7 @@ steps:
     inlineScript: |
       # Create model deployment configuration
       cat > deployment_config.yml << EOF
-      name: $(MODEL_NAME)-deployment
+      name: llama-3-2-1b-deployment
       model: azureml:$(MODEL_NAME)@latest
       endpoint_name: $(ENDPOINT_NAME)
       instance_type: Standard_NC6s_v3
