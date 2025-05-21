@@ -6,7 +6,7 @@ code_configuration:
   code: ./deployment_files
   scoring_script: score.py
 environment: azureml:AzureML-ACPT-pytorch-1.13-py38-cuda11.7-gpu@latest
-instance_type: Standard_E4s_v3
+instance_type: Standard_NC4as_T4_v3
 instance_count: 1
 app_insights_enabled: false
 scale_settings:
