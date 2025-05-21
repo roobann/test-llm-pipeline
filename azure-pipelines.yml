@@ -18,6 +18,8 @@ variables:
     value: '$(Build.SourcesDirectory)/models'
   - name: VENV_PATH
     value: '$(Build.SourcesDirectory)/venv'
+  - name: AZURE_SERVICE_CONNECTION
+    value: 'connection1'
 
 steps:
 - script: |
@@ -76,7 +78,7 @@ steps:
 - task: AzureCLI@2
   displayName: 'Azure Login'
   inputs:
-    azureSubscription: 'azure-subscription'
+    azureSubscription: '$(AZURE_SERVICE_CONNECTION)'
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
@@ -84,6 +86,19 @@ steps:
       az account show
       echo "Listing available subscriptions..."
       az account list --output table
+      
+      # Get the subscription ID from the service connection
+      SUBSCRIPTION_ID=$(az account show --query id -o tsv)
+      echo "Current subscription ID: $SUBSCRIPTION_ID"
+      
+      # Try to explicitly set the subscription
+      echo "Setting subscription explicitly..."
+      az account set --subscription $SUBSCRIPTION_ID
+      
+      # Verify the subscription is set
+      echo "Verifying subscription..."
+      az account show --query "{subscriptionId:id, subscriptionName:name, tenantId:tenantId}" -o table
+      
       echo "Checking service principal status..."
       az ad sp list --display-name "azure-subscription" --query "[].{displayName:displayName, appId:appId, accountEnabled:accountEnabled}" --output table
       echo "Successfully authenticated with Azure"
@@ -91,7 +106,7 @@ steps:
 - task: AzureCLI@2
   displayName: 'Setup Azure ML Workspace and Register Model'
   inputs:
-    azureSubscription: 'azure-subscription'
+    azureSubscription: '$(AZURE_SERVICE_CONNECTION)'
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
@@ -113,7 +128,7 @@ steps:
 - task: AzureCLI@2
   displayName: 'Create or Update Online Endpoint'
   inputs:
-    azureSubscription: 'azure-subscription'
+    azureSubscription: '$(AZURE_SERVICE_CONNECTION)'
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
@@ -135,7 +150,7 @@ steps:
 - task: AzureCLI@2
   displayName: 'Deploy Model to Online Endpoint'
   inputs:
-    azureSubscription: 'azure-subscription'
+    azureSubscription: '$(AZURE_SERVICE_CONNECTION)'
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
@@ -147,7 +162,7 @@ steps:
 - task: AzureCLI@2
   displayName: 'Get Endpoint Details'
   inputs:
-    azureSubscription: 'azure-subscription'
+    azureSubscription: '$(AZURE_SERVICE_CONNECTION)'
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
