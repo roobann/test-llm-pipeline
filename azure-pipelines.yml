@@ -123,7 +123,8 @@ steps:
         --path $(MODEL_PATH) \
         --type custom_model \
         --workspace-name $(AZURE_ML_WORKSPACE) \
-        --resource-group $(AZURE_ML_RESOURCE_GROUP)
+        --resource-group $(AZURE_ML_RESOURCE_GROUP) \
+        --local
 
 - task: AzureCLI@2
   displayName: 'Create or Update Online Endpoint'
@@ -154,10 +155,28 @@ steps:
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
-      # Deploy the model using the configuration file
-      az ml online-deployment create -f deployment_config.yml \
+      # First, ensure the endpoint exists
+      echo "Ensuring endpoint exists..."
+      az ml online-endpoint show --name $(ENDPOINT_NAME) --workspace-name $(AZURE_ML_WORKSPACE) --resource-group $(AZURE_ML_RESOURCE_GROUP) || \
+      az ml online-endpoint create --name $(ENDPOINT_NAME) --workspace-name $(AZURE_ML_WORKSPACE) --resource-group $(AZURE_ML_RESOURCE_GROUP)
+      
+      # Deploy the model using the configuration file with optimized settings
+      echo "Deploying model..."
+      az ml online-deployment create \
+        -f deployment_config.yml \
         --workspace-name $(AZURE_ML_WORKSPACE) \
-        --resource-group $(AZURE_ML_RESOURCE_GROUP)
+        --resource-group $(AZURE_ML_RESOURCE_GROUP) \
+        --local \
+        --all-traffic
+
+      # Wait for deployment to complete
+      echo "Waiting for deployment to complete..."
+      az ml online-deployment show \
+        --name llama-3-2-1b-deployment \
+        --endpoint-name $(ENDPOINT_NAME) \
+        --workspace-name $(AZURE_ML_WORKSPACE) \
+        --resource-group $(AZURE_ML_RESOURCE_GROUP) \
+        --query "provisioning_state"
 
 - task: AzureCLI@2
   displayName: 'Get Endpoint Details'
