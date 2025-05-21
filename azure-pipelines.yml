@@ -74,6 +74,21 @@ steps:
   displayName: 'Install Azure CLI'
 
 - task: AzureCLI@2
+  displayName: 'Azure Login'
+  inputs:
+    azureSubscription: 'azure-subscription'
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      echo "Checking Azure authentication status..."
+      az account show
+      echo "Listing available subscriptions..."
+      az account list --output table
+      echo "Checking service principal status..."
+      az ad sp list --display-name "azure-subscription" --query "[].{displayName:displayName, appId:appId, accountEnabled:accountEnabled}" --output table
+      echo "Successfully authenticated with Azure"
+
+- task: AzureCLI@2
   displayName: 'Setup Azure ML Workspace and Register Model'
   inputs:
     azureSubscription: 'azure-subscription'
